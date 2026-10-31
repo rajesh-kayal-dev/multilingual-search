@@ -1,190 +1,158 @@
-# Jaldi V2: Quick Commerce Search
+# Multilingual Search
 
-A Blinkit-style grocery search that understands 12 Indian languages, Hinglish and intents. Pick a pincode, get the products of that dark store.
+**Search Anything. In Any Language. At Lightning Speed.**
 
-V2 starts from a copy of `../2.Quick Commerce Searching` (V1). What changed:
+An AI-powered search engine with support for 200+ languages. Search in Hindi, English, Bengali, Hinglish and more. Just type what you're looking for and get fast, relevant results. Search without language barriers!
 
-| Change | Where |
-|---|---|
-| Tag safety gate: an LLM judge checks every tag that is not a curated KB word (LLM tags, admin tags, approved search queries). Fails closed. No word list. | `src/ai/tagging/tag-guard.ts`, rule in `rules/scoped/content-safety.md` |
-| Suggested tags go live only on admin approval, never on clicks alone | `src/analytics/suggestions.ts` |
-| Light / dark theme on the shop and the admin, toggle in the header | `public/assets/theme.css`, `public/assets/theme.js` |
-| Own data next to V1 on the same containers: db `jaldi`, Redis DB 1, Kafka prefix `jaldi.`, Typesense prefix `jaldi_`, port 5004 | `src/bootstrap/env.ts` |
+## What is it?
 
-- "doodh", "paal", "दूध", "पाल" and "milk" all find milk.
-- "mujhe chai peeni hai" finds tea, milk, sugar and biscuits.
-- "amul doodh 1 litre 60 se kam" becomes brand, size and price filters.
+Multilingual Search helps users find products using the language they are comfortable with. Instead of depending on exact keywords, users can search naturally and discover relevant products quickly.
 
-Products flow through Kafka, get AI tags and a vector, and land in Typesense. Every search and click feeds an analytics dashboard.
+You can also integrate it into your own project to make search smarter and more accessible.
 
-## Stack
+## Features
 
-| Part | Tech | Job |
-|---|---|---|
-| API | Fastify 5, TypeScript, Node 24 | Search, events, admin APIs, serves the pages |
-| Source of truth | MongoDB (brew, standalone), db `jaldi` | Products, tags, vectors, analytics counters |
-| Search | Typesense 30.2 (Docker) | Keyword + vector (hybrid) search, synonyms |
-| Queue | Kafka (Docker) | Product pipeline and search events |
-| Cache | Redis | Query vectors, rewrites, unique visitors, live ticker, rate limit, AI setting |
-| AI | Ollama `gemma3:4b` (tags, rewrite), `bge-m3` (vectors) | Plug-and-play: OpenAI, Anthropic, Gemini too |
-| UI | Plain HTML + Tailwind CDN, Chart.js, Leaflet | Shop page and admin dashboard, no build step |
+* **200+ Languages** – Search across multiple languages.
+* **Natural Language Search** – Search the way you speak.
+* **AI-Powered Search** – Find relevant results beyond exact keyword matches.
+* **Fast Results** – Get search results in milliseconds.
+* **Hyperlocal Discovery** – Discover products from nearby stores.
+* **Smart Suggestions** – Get helpful search suggestions.
 
-## How it works
+## Tech Stack
 
+| Technology            | Purpose                      |
+| --------------------- | ---------------------------- |
+| Node.js               | Backend runtime              |
+| TypeScript            | Type-safe development        |
+| Fastify               | API server                   |
+| MongoDB               | Product and application data |
+| Redis                 | Caching                      |
+| Kafka                 | Event processing             |
+| Typesense             | Search engine                |
+| Ollama                | Local AI models              |
+| HTML, CSS, JavaScript | Frontend                     |
+
+## How It Works
+
+```mermaid
+flowchart TD
+    A[User Search] --> B[Fastify API]
+    B --> C[Search Processing]
+    C --> D[Typesense]
+    C --> E[AI / Ollama]
+    D --> F[Relevant Results]
+    E --> F
+    F --> G[User Interface]
+
+    H[MongoDB] --> C
+    I[Redis Cache] <--> C
+    J[Kafka] --> K[Background Workers]
+    K --> H
+    K --> D
 ```
-Admin "Add product"            POST /products -> 202
-        |
-        v
-  products.ingest  --ingest worker-->  Mongo (status: pending)
-        |
-        v
-  products.enrich  --enrich worker-->  tags (rules + LLM) + vector (bge-m3) -> Mongo
-        |                              admin tags for the same title: LLM skipped
-        v                              3 failures -> products.enrich.dlq
-  products.index   --index worker--->  Typesense (alias "products")
 
-Shopper search   GET /search -> query parser (filters) -> hybrid search -> intents re-rank
-                 Hinglish rewrite runs in the background and is cached for the next time
-        |
-        v
-  search.events  --analytics worker-->  raw events (90 days) + daily counters (stats_daily)
-                                        + Redis (visitors, live) + AI suggested tags
+## Project Structure
+
+```text
+multilingual-search/
+│
+├── public/
+│   ├── assets/
+│   ├── index.html
+│   └── admin.html
+│
+├── src/
+│   ├── app.ts
+│   ├── routes/
+│   ├── services/
+│   ├── workers/
+│   └── ...
+│
+├── .env.example
+├── package.json
+├── pnpm-lock.yaml
+├── tsconfig.json
+└── README.md
 ```
 
-### AI suggested tags
+## Getting Started
 
-1. A search finds a product only by meaning (vector hit, no keyword hit). The pair becomes a candidate.
-2. The AI checks if the pair makes sense.
-3. It goes live as a tag only when the admin approves it and the query passes the tag safety gate. Clicks and distinct shoppers are shown to the admin, they never activate a tag.
+### 1. Clone the repository
 
-## Setup
+```bash
+git clone https://github.com/rajesh-kayal-dev/multilingual-search.git
 
-You need Docker, MongoDB from brew, Redis, Ollama, Node 24 and pnpm.
+cd multilingual-search
+```
+
+### 2. Install dependencies
 
 ```bash
 pnpm install
-ollama pull gemma3:4b
-ollama pull bge-m3
 ```
 
-Copy `.env.example` to `.env` and fill it in. The defaults work for a local machine.
+### 3. Configure environment variables
 
-## Run order
+Create your `.env` file using the example:
 
-| Step | Command | What it does | Writes data |
-|---|---|---|---|
-| 1 | `pnpm typesense:up` | Starts Typesense on :8108 | No |
-| 2 | `pnpm kafka:up` | Starts Kafka on :9094 | No |
-| 3 | `pnpm ai:check` | Checks the LLM and the embed model answer | No |
-| 4 | `pnpm check` | Self checks: tag rules, catalog, query parser, dates, rollup | No |
-| 5 | `pnpm seed:products` | 2 lakh products into Mongo `jaldi` (asks first; `--count=`, `--append`, `--yes`) | Mongo |
-| 6 | `pnpm reindex` | Tags + vectors for every product, new Typesense collection, alias switch (`--reembed`, `--keep-old`, `--yes`) | Mongo, Typesense |
-| 7 | `pnpm dev` | API + pages on http://localhost:5004, plus all Kafka workers (ingest, enrich, index, analytics). Rebuilds and restarts both on a code change | All |
-| 8 | `pnpm seed:traffic` | Fake searches and clicks so the dashboard has data (`--days=30 --searches=100000`) | Kafka, then Mongo |
-| 9 | `pnpm eval:search` | Search quality report on fixed queries (`--rewrite`, `--min=`, `--words=`) | No |
-
-`pnpm workers` runs the workers alone, for example more copies of one role: `WORKER_ROLES=enrich pnpm workers`.
-
-The seed and reindex scripts only write to a database whose name starts with `jaldi` (or `--allow-db`).
-
-## Pages
-
-| URL | Page |
-|---|---|
-| `/` | Shop: location picker, search with suggestions, filter chips, cart |
-| `/admin` | Overview: KPIs, trend, script split, live searches, top and zero-result searches |
-| `/admin/searches` | Every search, sortable; click one for its detail (products clicked, cities, similar searches) |
-| `/admin/products` | Product performance; product detail with tags editor |
-| `/admin/products/new` | Add a product: instant rule tags, "Generate with AI", edit tags, follow it through the pipeline |
-| `/admin/locations` | Demand map, cities, "where to open the next store", "what to stock" |
-| `/admin/suggestions` | AI suggested tags: approve or reject |
-| `/admin/settings` | Admin key, switch the LLM without a restart, search index status |
-| `/api-docs` | Swagger |
-
-Every admin page has a date filter (today, yesterday, 7 days, 30 days, this month, custom) and a city filter.
-
-The admin key goes in the `x-admin-key` header. With `ADMIN_KEY` empty in dev, the key is `dev-admin-key`. Production needs a real one.
-
-## API
-
-| Route | Notes |
-|---|---|
-| `GET /search?q=&pincode=&page=&ignore=` | Hybrid search, rate limited. `ignore=brand,price,size` drops a parsed filter |
-| `GET /search/suggest?q=` | Prefix search for the dropdown, sends no event |
-| `GET /search/popular?pincode=` | Empty search box: trending categories in the city, popular products in the store. Other shoppers' searches are never shown |
-| `POST /events` | Shop click and add events, rate limited |
-| `GET /locations/cities`, `/search?q=`, `/resolve?pincode=`, `/stores` | Static location data |
-| `GET /products`, `/products/:id`, `/products/categories` | Catalog reads |
-| `POST /products`, `PUT /products/:id`, `DELETE /products/:id` | Admin. Queued on Kafka, answers 202 |
-| `POST /products/preview-tags` | Admin. `mode: rules` (instant) or `full` (rules + LLM). Saves nothing |
-| `GET /analytics/*` | Admin. overview, searches, products, locations, live, suggestions |
-| `GET/PUT/DELETE /settings/ai` | Admin. LLM switch, stored in Redis |
-| `GET /health`, `GET /ready` | Liveness, and Mongo / Typesense / Kafka / Redis state |
-
-## Switching AI providers
-
-Each provider lives in `src/ai/providers/<name>/` with its own config, types and provider file.
-
-| How | What changes |
-|---|---|
-| `.env`: `AI_LLM_PROVIDER`, `AI_LLM_MODEL` | The default LLM |
-| `.env`: `AI_LLM_FALLBACK`, `AI_LLM_FALLBACK_MODEL` | Used when the main LLM fails |
-| Settings page | LLM for the API and all workers within 10 s, no restart |
-| `.env`: `AI_EMBED_PROVIDER`, `AI_EMBED_MODEL`, `AI_EMBED_DIMS` + `pnpm reindex` | Embeddings. Old and new vectors cannot mix |
-
-Keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`. A provider without a key is greyed out in Settings.
-
-## Environment
-
-Read and checked by `src/bootstrap/env.ts` and `src/ai/ai.config.ts`.
-
-| Group | Variables |
-|---|---|
-| Server | `PORT` (5004), `NODE_ENV`, `LOG_LEVEL`, `ADMIN_KEY` |
-| Mongo | `MONGO_URI` (`mongodb://127.0.0.1:27017/jaldi`), `MONGO_MODE`, `MONGO_MIN_POOL`, `MONGO_MAX_POOL`, `MONGO_SELECT_TIMEOUT_MS`, `MONGO_CIRCUIT_FAILS`, `MONGO_CIRCUIT_MS` |
-| Redis | `REDIS_URL` (`redis://127.0.0.1:6379/1`, V1 uses DB 0 with the same key names) |
-| Kafka | `KAFKA_BROKERS` (`127.0.0.1:9094`), `KAFKA_CLIENT_ID` (`jaldi`), `KAFKA_TOPIC_PREFIX` (`jaldi.`) |
-| Typesense | `TYPESENSE_URL`, `TYPESENSE_API_KEY`, `TYPESENSE_COLLECTION_PREFIX` (`jaldi_`) |
-| AI | `AI_LLM_*`, `AI_EMBED_*`, `AI_TIMEOUT_MS`, `OLLAMA_URL`, `OLLAMA_KEEP_ALIVE`, `OLLAMA_NUM_CTX`, `*_API_KEY`, `*_BASE_URL`, `ANTHROPIC_VERSION` |
-| Search | `SEARCH_REWRITE`, `RATE_LIMIT_SEARCH_PER_MIN`, `RATE_LIMIT_EVENTS_PER_MIN` |
-
-`NODE_ENV=test` loads `.env.test` instead.
-
-## Folders
-
-```
-src/
-  ai/            providers (ollama, openai, anthropic, gemini), tagging (rules + KB + LLM), query rewrite
-  analytics/     event types, rollups, dashboard queries, suggested tags
-  bootstrap/     env, Mongo, Redis, Kafka, Typesense, shutdown
-  catalog/       aisles and items used by the product generator
-  features/      products and settings routes
-  locations/     cities, pincodes, dark stores (static data)
-  search/        Typesense schema, query parser, intents, search service, reindex, eval
-  seed/          product generator, product seed, traffic seed
-  workers/       ingest, enrich, index, analytics consumers
-  app.ts         routes and pages
-  server.ts      API entry
-  workers.ts     workers entry
-public/          shop (index.html) and admin (admin.html, assets/admin/*)
-infra/           Docker compose for Typesense, Kafka, Mongo
-.future-scope/   ideas for later, numbered and dated
+```bash
+cp .env.example .env
 ```
 
-## Kafka topics and groups
+Add your MongoDB, Redis, Kafka, Typesense and AI model configuration.
 
-| Topic | Group | Worker |
-|---|---|---|
-| `products.ingest` | `qc-ingest` | Writes Mongo, routes to enrich or index |
-| `products.enrich` | `qc-enrich` | Tags + vector |
-| `products.enrich.dlq` | none | Products that failed 3 times |
-| `products.index` | `qc-index` | Typesense upsert / delete |
-| `search.events` | `qc-analytics` | Counters, visitors, suggested tags |
+Make sure the required services are running before starting the application.
 
-`KAFKA_TOPIC_PREFIX` goes in front of every name. Auto topic creation is off; the app creates them on start.
+### 4. Start the project
 
-## Notes
+```bash
+pnpm dev
+```
 
-- Analytics is at-least-once. A batch read again after a crash can count twice. Fine for dashboards.
-- Days are India time (IST). A search at 23:30 belongs to that day.
-- Seeded products share the vector of their base item, so 2 lakh products need about 150 embeddings.
+Your application should now be running at the configured local port.
+
+## Using It in Your Project
+
+You can connect your application to the search API and send a search query.
+
+Example:
+
+```javascript
+const response = await fetch(
+  "http://localhost:5004/search/?q=chocolate"
+);
+
+const data = await response.json();
+
+console.log(data);
+```
+
+Replace the URL with your deployed API URL when using it in production.
+
+## Admin Dashboard
+
+The project also includes an admin dashboard where you can manage and monitor search-related data.
+
+```text
+http://localhost:5004/admin
+```
+
+API documentation:
+
+```text
+http://localhost:5004/api-docs
+```
+
+## What's Next?
+
+* Improve multilingual search accuracy.
+* Expand language and regional support.
+* Improve search relevance and suggestions.
+* Make integration easier for developers.
+
+## A Simple Idea
+
+**You shouldn't have to change your language to use technology. Technology should understand yours.**
+
+Search Anything. In Any Language. At Lightning Speed.🖤🩶

@@ -1,4 +1,4 @@
-import { LANGS } from "../../shared/text.js";
+import { LANGS } from "../../shared/utils/text.js";
 import { tagRules } from "./kb.js";
 import type { Analysis } from "./tag-rules.js";
 

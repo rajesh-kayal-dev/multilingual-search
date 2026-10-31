@@ -4,7 +4,7 @@
  * createTagRules(kb) builds every index from one KB, so the self check can run on the
  * original KB while the app runs on the merged one.
  */
-import type { Lang } from "../../shared/text.js";
+import type { Lang } from "../../shared/utils/text.js";
 
 export interface KbCategory {
   hindi: string[];

@@ -1,0 +1,32 @@
+name: indic-search-redis
+
+volumes:
+  redis-data:
+    name: indic-search-redis-data
+
+services:
+  redis:
+    image: redis:8-alpine
+    container_name: indic-search-redis
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis-data:/data
+
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

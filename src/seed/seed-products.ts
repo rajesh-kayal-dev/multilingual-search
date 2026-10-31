@@ -5,7 +5,7 @@
  * pnpm seed:products -- --append --only="mosquito repellent" --count=24
  *                                           only that category's catalog items (key from GET /products/categories)
  *
- * Writes products + their vectors into the database of MONGO_URI (only a "jaldi..." database).
+ * Writes products + their vectors into the database of MONGO_URI (only a "indic_search..." database).
  * Tags come from the KB rules (no LLM, so it is fast). One vector per base item (~150 Ollama calls),
  * shared by all its products. Then run: pnpm reindex
  */
@@ -16,11 +16,11 @@ import { ruleTags, tagsForName } from "../ai/tagging/tag-engine.js";
 import type { TagSet } from "../ai/tagging/tag.types.js";
 import { connectDatabase, disconnectDatabase } from "../bootstrap/database.js";
 import { ensureIndexes } from "../bootstrap/models.js";
-import { BASE_ITEMS } from "../catalog/index.js";
-import { baseItemEmbedText } from "../catalog/embed-text.js";
-import { ProductModel } from "../features/products/products.model.js";
-import { getOrCreateEmbeddings } from "../search/embeddings.js";
-import { assertSafeDatabase, confirm, flag, hasFlag, intFlag } from "../shared/cli.js";
+import { BASE_ITEMS } from "../modules/catalog/index.js";
+import { baseItemEmbedText } from "../modules/catalog/embed-text.js";
+import { ProductModel } from "../modules/catalog/products.model.js";
+import { getOrCreateEmbeddings } from "../modules/search/embeddings.js";
+import { assertSafeDatabase, confirm, flag, hasFlag, intFlag } from "../shared/utils/cli.js";
 import { generateProducts, maxProducts, type GeneratedProduct } from "./catalog-generator.js";
 
 const ONLY = flag("only");
@@ -142,4 +142,4 @@ main()
     console.error(`seed failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exitCode = 1;
   })
-  .finally(() => disconnectDatabase().catch(() => {}));
+  .finally(() => disconnectDatabase().catch(() => { }));

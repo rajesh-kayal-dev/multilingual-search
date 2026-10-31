@@ -1,8 +1,8 @@
-name: qc-search
+name: indic_search-typesense
 
 volumes:
   typesense-data:
-    name: qc-typesense-data
+    name: indic_search-typesense-data
 
 # Typesense, one node. The app runs on the host and connects to localhost:8108.
 # The API key comes from TYPESENSE_API_KEY in the project .env (pnpm typesense:up passes --env-file .env).
@@ -10,7 +10,7 @@ volumes:
 services:
   typesense:
     image: typesense/typesense:30.2
-    container_name: qc-typesense
+    container_name: indic_search-typesense
     restart: unless-stopped
     ports:
       - "8108:8108"

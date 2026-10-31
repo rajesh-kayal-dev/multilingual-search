@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LANGS, type Lang } from "../../shared/text.js";
+import { LANGS, type Lang } from "../../shared/utils/text.js";
 
 const list = z.array(z.string());
 

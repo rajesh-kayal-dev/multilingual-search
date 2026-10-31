@@ -5,7 +5,7 @@
  * Same flow as generateFinalTags() in Tag-Generator.js. The admin preview and the enrich worker both call this.
  */
 import { logger } from "../../bootstrap/logger.js";
-import { LANGS, LANG_SCRIPT, detectScript, isInScript, type Lang } from "../../shared/text.js";
+import { LANGS, LANG_SCRIPT, detectScript, isInScript, type Lang } from "../../shared/utils/text.js";
 import { ai } from "../index.js";
 import { tagRules } from "./kb.js";
 import { tagSystemPrompt, tagUserPrompt } from "./tag.prompts.js";

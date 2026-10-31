@@ -2,17 +2,17 @@
 // + AI suggested tags + the searched-queries collection in Typesense.
 // At-least-once: a batch that fails is read again, so a crash can count a batch twice. Fine for analytics.
 import { ai } from "../ai/index.js";
-import { SearchEventModel, StatsDailyModel } from "../analytics/analytics.models.js";
-import type { AnalyticsEvent } from "../analytics/analytics.types.js";
-import { buildRollup, toBulkOps, type ProductMeta } from "../analytics/rollup.js";
-import { recordSuggestions, runAiChecks } from "../analytics/suggestions.js";
+import { SearchEventModel, StatsDailyModel } from "../modules/analytics/analytics.models.js";
+import type { AnalyticsEvent } from "../modules/analytics/analytics.types.js";
+import { buildRollup, toBulkOps, type ProductMeta } from "../modules/analytics/rollup.js";
+import { recordSuggestions, runAiChecks } from "../modules/analytics/suggestions.js";
 import { GROUPS, TOPICS, startConsumer } from "../bootstrap/kafka.js";
 import { logger } from "../bootstrap/logger.js";
 import { redisClient } from "../bootstrap/redis.js";
-import { ProductModel } from "../features/products/products.model.js";
-import { queryVectors } from "../search/query-vector.js";
-import { activeProductsCollection, ensureQueriesCollection, importDocs } from "../search/typesense.schema.js";
-import { sha1 } from "../shared/text.js";
+import { ProductModel } from "../modules/catalog/products.model.js";
+import { queryVectors } from "../modules/search/query-vector.js";
+import { activeProductsCollection, ensureQueriesCollection, importDocs } from "../modules/search/typesense.schema.js";
+import { sha1 } from "../shared/utils/text.js";
 
 const VISITORS_TTL_S = 100 * 24 * 3600;
 const LIVE_TTL_S = 3 * 3600;

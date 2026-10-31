@@ -2,27 +2,27 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import zlib from "node:zlib";
 import Fastify, { type FastifyReply } from "fastify";
-import cors from "@fastify/cors";
 import compress from "@fastify/compress";
 import fastifyStatic from "@fastify/static";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 
-import analyticsRouter from "./analytics/analytics.router.js";
-import eventsRouter from "./analytics/events.router.js";
-import { isKafkaReady } from "./bootstrap/kafka.js";
+import corsPlugin from "./plugins/cors.js";
+import errorHandlerPlugin from "./plugins/error-handler.js";
 import { logger } from "./bootstrap/logger.js";
 import { getMongoTopology } from "./bootstrap/mongo-topology.js";
 import { redisClient } from "./bootstrap/redis.js";
+import { isKafkaReady } from "./bootstrap/kafka.js";
 import { isTypesenseReady } from "./bootstrap/typesense.js";
 import { swaggerSpec } from "./docs/swagger.js";
-import productsRouter from "./features/products/products.router.js";
-import settingsRouter from "./features/settings/settings.router.js";
-import locationsRouter from "./locations/locations.router.js";
-import searchRouter from "./search/search.router.js";
-import { errorHandler } from "./shared/error.js";
-import { mongoGate } from "./shared/mongo-gate.js";
-import { armRequestTimeout } from "./shared/timeout.js";
+import searchRouter from "./modules/search/search.router.js";
+import eventsRouter from "./modules/events/events.router.js";
+import locationsRouter from "./modules/locations/locations.router.js";
+import catalogRouter from "./modules/catalog/products.router.js";
+import analyticsRouter from "./modules/analytics/analytics.router.js";
+import settingsRouter from "./modules/settings/settings.router.js";
+import { mongoGate } from "./shared/middleware/mongo-gate.js";
+import { armRequestTimeout } from "./shared/middleware/timeout.js";
 
 const BODY_LIMIT = 100 * 1024;
 const PUBLIC = path.join(process.cwd(), "public");
@@ -31,9 +31,9 @@ export const buildApp = async () => {
   const app = Fastify({ logger: false, bodyLimit: BODY_LIMIT });
 
   // Must be set before any plugin registers: child plugins copy the handler at register time.
-  app.setErrorHandler(errorHandler);
+  await app.register(errorHandlerPlugin);
 
-  await app.register(cors);
+  await app.register(corsPlugin);
   // search answers are JSON lists of a few KB: fast compression levels, skip tiny bodies
   await app.register(compress, {
     global: true,
@@ -79,9 +79,10 @@ export const buildApp = async () => {
   await app.register(eventsRouter, { prefix: "/events" });
   await app.register(locationsRouter, { prefix: "/locations" });
 
+  // catalog, analytics, settings need Mongo + admin key (routers enforce admin key internally)
   await app.register(async (api) => {
     api.addHook("onRequest", mongoGate);
-    await api.register(productsRouter, { prefix: "/products" });
+    await api.register(catalogRouter, { prefix: "/products" });
     await api.register(analyticsRouter, { prefix: "/analytics" });
     await api.register(settingsRouter, { prefix: "/settings" });
   });

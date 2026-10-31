@@ -3,8 +3,8 @@
 import { Types } from "mongoose";
 import { emptyTagSet } from "../ai/tagging/tag.types.js";
 import { GROUPS, TOPICS, sendEvents, startConsumer } from "../bootstrap/kafka.js";
-import { ProductModel } from "../features/products/products.model.js";
-import type { IndexMessage, IngestMessage, ProductFields } from "../features/products/products.types.js";
+import { ProductModel } from "../modules/catalog/products.model.js";
+import type { IndexMessage, IngestMessage, ProductFields } from "../modules/catalog/products.types.js";
 
 // a new name, brand or category means the product is something else: new tags, new vector
 const MEANING_FIELDS: Array<keyof ProductFields> = ["name", "brand", "category"];

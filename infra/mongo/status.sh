@@ -4,7 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")" && pwd)"
 js="$root/scripts/rs-status.js"
 
-containers=(fk-mongo-primary fk-mongo-secondary-1 fk-mongo-secondary-2)
+containers=(indic_search-mongo-primary indic_search-mongo-secondary-1 indic_search-mongo-secondary-2)
 
 for c in "${containers[@]}"; do
   if docker exec "$c" mongosh --quiet --eval "db.adminCommand({ ping: 1 }).ok" >/dev/null 2>&1; then

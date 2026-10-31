@@ -1,6 +1,6 @@
-import { SearchEventModel, StatsDailyModel, TagSuggestionModel } from "../analytics/analytics.models.js";
-import { ProductModel } from "../features/products/products.model.js";
-import { EmbeddingModel } from "../search/embeddings.js";
+import { SearchEventModel, StatsDailyModel, TagSuggestionModel } from "../modules/analytics/analytics.models.js";
+import { ProductModel } from "../modules/catalog/products.model.js";
+import { EmbeddingModel } from "../modules/search/embeddings.js";
 import { logger } from "./logger.js";
 
 const NAMESPACE_EXISTS = 48;

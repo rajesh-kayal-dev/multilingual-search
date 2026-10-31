@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APP_NAME="qc-search-prod"
+APP_NAME="indic_search-prod"
 
 # Build first, once — pm2 runs the built dist/server.js directly in cluster mode (4
 # instances), so the build must not happen inside the pm2-managed command itself

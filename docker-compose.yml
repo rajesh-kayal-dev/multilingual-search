@@ -1,0 +1,246 @@
+# Indic Search - Unified Docker Infrastructure
+# All services follow the indic-search-* naming convention.
+# Volumes are preserved across restarts - never delete volumes without explicit approval.
+
+name: indic-search
+
+services:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # MongoDB Replica Set (primary + 2 secondaries)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  indic-search-mongo-primary:
+    image: mongo:8
+    container_name: indic-search-mongo-primary
+    hostname: indic-search-mongo-primary
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Docker Desktop Linux VM kernel 6.19+; Mongo 8 requires this (SERVER-121912)
+      GLIBC_TUNABLES: glibc.pthread.rseq=1
+    networks:
+      - indic-search-net
+    ports:
+      - "27017:27017"
+    volumes:
+      - indic-search-mongo-primary-data:/data/db
+    command:
+      - mongod
+      - --replSet
+      - indic_search-rs
+      - --bind_ip_all
+      - --wiredTigerCacheSizeGB
+      - "0.25"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 2)"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  indic-search-mongo-secondary-1:
+    image: mongo:8
+    container_name: indic-search-mongo-secondary-1
+    hostname: indic-search-mongo-secondary-1
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      GLIBC_TUNABLES: glibc.pthread.rseq=1
+    networks:
+      - indic-search-net
+    ports:
+      - "27018:27017"
+    volumes:
+      - indic-search-mongo-secondary-1-data:/data/db
+    command:
+      - mongod
+      - --replSet
+      - indic_search-rs
+      - --bind_ip_all
+      - --wiredTigerCacheSizeGB
+      - "0.25"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 2)"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  indic-search-mongo-secondary-2:
+    image: mongo:8
+    container_name: indic-search-mongo-secondary-2
+    hostname: indic-search-mongo-secondary-2
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      GLIBC_TUNABLES: glibc.pthread.rseq=1
+    networks:
+      - indic-search-net
+    ports:
+      - "27019:27017"
+    volumes:
+      - indic-search-mongo-secondary-2-data:/data/db
+    command:
+      - mongod
+      - --replSet
+      - indic_search-rs
+      - --bind_ip_all
+      - --wiredTigerCacheSizeGB
+      - "0.25"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 2)"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  indic-search-mongo-init:
+    image: mongo:8
+    container_name: indic-search-mongo-init
+    restart: "no"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - indic-search-net
+    depends_on:
+      indic-search-mongo-primary:
+        condition: service_healthy
+      indic-search-mongo-secondary-1:
+        condition: service_healthy
+      indic-search-mongo-secondary-2:
+        condition: service_healthy
+    volumes:
+      - ./infra/mongo/scripts/rs-init.js:/rs-init.js:ro
+    command:
+      - mongosh
+      - --host
+      - indic-search-mongo-primary:27017
+      - --file
+      - /rs-init.js
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Redis (cache, rate limiting, unique visitors, AI settings)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  indic-search-redis:
+    image: redis:8-alpine
+    container_name: indic-search-redis
+    restart: unless-stopped
+    networks:
+      - indic-search-net
+    ports:
+      - "6379:6379"
+    volumes:
+      - indic-search-redis-data:/data
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Kafka (product pipeline, search events)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  indic-search-kafka:
+    image: apache/kafka:4.3.1
+    container_name: indic-search-kafka
+    restart: unless-stopped
+    networks:
+      - indic-search-net
+    ports:
+      - "9094:9094"
+    volumes:
+      - indic-search-kafka-data:/var/lib/kafka/data
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@indic-search-kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://indic-search-kafka:29092,CONTROLLER://indic-search-kafka:29093,PLAINTEXT_HOST://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://indic-search-kafka:29092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 9094 || nc -z localhost 29092"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Typesense (hybrid search index)
+  # Typesense 30.2 crashes when brpc cannot read /proc/self/io. This local
+  # compatibility image supplies that process metric while preserving /data.
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  indic-search-typesense:
+    image: indic-search-typesense:30.2-proc-io-fix
+    build:
+      context: ./infra/typesense
+    container_name: indic-search-typesense
+    restart: unless-stopped
+    networks:
+      - indic-search-net
+    ports:
+      - "8108:8108"
+    volumes:
+      - indic-search-typesense-data:/data
+    command:
+      - "--data-dir=/data"
+      - "--api-key=${TYPESENSE_API_KEY:-your_typesense_api_key_here}"
+      - "--enable-cors"
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/8108 &&
+          printf 'GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          IFS= read -r status <&3 &&
+          [[ "$$status" == *" 200 "* ]]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+networks:
+  indic-search-net:
+    name: indic-search-net
+    driver: bridge
+
+volumes:
+  # Existing volume names preserved to protect data. Local references use
+  # the indic-search-* convention; name: maps to the pre-existing Docker volume.
+  indic-search-mongo-primary-data:
+    name: indic_search-mongo-primary-data
+    external: true
+  indic-search-mongo-secondary-1-data:
+    name: indic_search-mongo-secondary-1-data
+    external: true
+  indic-search-mongo-secondary-2-data:
+    name: indic_search-mongo-secondary-2-data
+    external: true
+  indic-search-redis-data:
+    name: indic-search-redis-data
+    external: true
+  indic-search-kafka-data:
+    name: indic_search-kafka-data
+    external: true
+  indic-search-typesense-data:
+    name: indic_search-typesense-data
+    external: true

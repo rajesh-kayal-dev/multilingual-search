@@ -1,7 +1,7 @@
 import { KafkaJS } from "@confluentinc/kafka-javascript";
 import { env } from "./env.js";
 import { logger } from "./logger.js";
-import { httpError } from "../shared/error.js";
+import { httpError } from "../shared/errors/error.js";
 
 // "test." prefix in .env.test, so test events never reach the dev workers
 const P = env.kafkaTopicPrefix;

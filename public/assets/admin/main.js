@@ -64,7 +64,7 @@ async function render() {
     return;
   }
   const [re, title, page, nav, showFilters] = route;
-  document.title = `${title} · Jaldi admin`;
+  document.title = `${title} · indic_search admin`;
   $("title").textContent = title;
   drawNav(nav);
   syncFilters(showFilters);

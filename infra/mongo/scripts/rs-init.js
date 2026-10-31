@@ -1,4 +1,4 @@
-const replicaSetName = "fk-rs";
+const replicaSetName = "indic_search-rs";
 
 const config = {
   _id: replicaSetName,
@@ -19,9 +19,20 @@ function alreadyInitiated() {
 }
 
 if (alreadyInitiated()) {
-  print("fk-rs already initiated, skip rs.initiate");
+  print("indic-search-rs already initiated, checking member addresses");
+  const conf = rs.conf();
+  const expectedHosts = config.members.map((member) => member.host);
+  const needsReconfig =
+    conf.members.length !== expectedHosts.length ||
+    conf.members.some((member, index) => member.host !== expectedHosts[index]);
+  if (needsReconfig) {
+    print("Reconfiguring replica set members to host-published addresses");
+    conf.members = config.members;
+    const result = rs.reconfig(conf);
+    printjson(result);
+  }
 } else {
-  print("initiating fk-rs");
+  print("initiating indic-search-rs");
   const result = rs.initiate(config);
   printjson(result);
   if (result.ok !== 1) {
@@ -51,4 +62,4 @@ const concern = db.adminCommand({
 });
 printjson(concern);
 
-print("fk-rs ready, w:majority");
+print("indic-search-rs ready, w:majority");

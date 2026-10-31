@@ -7,3 +7,4 @@ logs/
 # Local environment files
 .env.test
 .env.*.local
+public.zip

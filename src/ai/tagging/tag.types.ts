@@ -1,4 +1,4 @@
-import type { Lang } from "../../shared/text.js";
+import type { Lang } from "../../shared/utils/text.js";
 
 /** A product's search tags, grouped the way the admin page shows them. */
 export interface TagSet {

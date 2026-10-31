@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APP_NAME="qc-search-dev"
+APP_NAME="indic_search-dev"
 
 if pnpm exec pm2 describe "$APP_NAME" >/dev/null 2>&1; then
   echo "pm2: $APP_NAME already running, restarting..."

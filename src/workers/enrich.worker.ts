@@ -3,10 +3,10 @@
 import { generateTags, tagsForName } from "../ai/tagging/tag-engine.js";
 import { GROUPS, TOPICS, sendEvents, startConsumer } from "../bootstrap/kafka.js";
 import { logger } from "../bootstrap/logger.js";
-import { ProductModel } from "../features/products/products.model.js";
-import type { EnrichDlqMessage, EnrichMessage } from "../features/products/products.types.js";
-import { getOrCreateEmbeddings, productEmbedText } from "../search/embeddings.js";
-import { mapLimit, sleep } from "../shared/pool.js";
+import { ProductModel } from "../modules/catalog/products.model.js";
+import type { EnrichDlqMessage, EnrichMessage } from "../modules/catalog/products.types.js";
+import { getOrCreateEmbeddings, productEmbedText } from "../modules/search/embeddings.js";
+import { mapLimit, sleep } from "../shared/utils/pool.js";
 
 const MAX_ATTEMPTS = 3;
 // Ollama runs one model call at a time per model, more lanes only queue up there

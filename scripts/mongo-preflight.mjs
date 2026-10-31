@@ -83,7 +83,7 @@ export const formatConflicts = (conflicts, platform) =>
 
 const ownPorts = () => {
   try {
-    return parseDockerPorts(run("docker", ["ps", "--filter", "name=fk-mongo", "--format", "{{.Ports}}"]));
+    return parseDockerPorts(run("docker", ["ps", "--filter", "name=indic_search-mongo", "--format", "{{.Ports}}"]));
   } catch {
     return new Set(); // docker not running: compose itself will complain, ports are simply all "not ours"
   }

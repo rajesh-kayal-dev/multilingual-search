@@ -27,7 +27,7 @@ const envSchema = z.object({
       message: "MONGO_URI must start with mongodb:// or mongodb+srv://",
     })
     // brew mongod, standalone. Own database (V1 uses "blinkit"), so no other project's data is touched.
-    .default("mongodb://127.0.0.1:27017/jaldi"),
+    .default("mongodb://127.0.0.1:27017/indic_search"),
   // auto = probe the hosts and adapt (dev/test). A fixed value is probed too and must match,
   // otherwise startup fails. Production must pin replica or sharded (checked below).
   MONGO_MODE: z.enum(["auto", "standalone", "replica", "sharded"]).default("auto"),
@@ -43,15 +43,15 @@ const envSchema = z.object({
 
   // comma separated host:port list. 9094 = this project's own broker (qc-kafka), not Insta's 9092.
   KAFKA_BROKERS: z.string().min(1).default("127.0.0.1:9094"),
-  KAFKA_CLIENT_ID: z.string().min(1).default("jaldi"),
+  KAFKA_CLIENT_ID: z.string().min(1).default("indic_search"),
   // "test." in .env.test, so test events never reach the dev workers
   // V2 shares the qc-kafka broker with V1, the prefix keeps topics and consumer groups apart
-  KAFKA_TOPIC_PREFIX: z.string().default("jaldi."),
+  KAFKA_TOPIC_PREFIX: z.string().default("indic_search."),
 
   TYPESENSE_URL: z.string().url().default("http://127.0.0.1:8108"),
   TYPESENSE_API_KEY: z.string().min(1).default("qc-local-typesense-key"),
   // shares the Typesense container with V1, own collections
-  TYPESENSE_COLLECTION_PREFIX: z.string().default("jaldi_"),
+  TYPESENSE_COLLECTION_PREFIX: z.string().default("indic_search_"),
 
   // Admin pages and admin APIs send it in the x-admin-key header. Required in production.
   ADMIN_KEY: optional(z.string().min(8)),

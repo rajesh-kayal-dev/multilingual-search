@@ -3,7 +3,7 @@
 // Colors live in assets/theme.css as CSS variables; Tailwind gets them here, so every existing class
 // (bg-white, text-stone-500, bg-brand-700 ...) follows the theme without a dark: variant on each element.
 (() => {
-  const KEY = "jaldi.theme"; // same "jaldi." prefix as the store helper in common.js
+  const KEY = "indic_search.theme"; // same "indic_search." prefix as the store helper in common.js
   const root = document.documentElement;
   const saved = localStorage.getItem(KEY);
   const apply = (dark) => {

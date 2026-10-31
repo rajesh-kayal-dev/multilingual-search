@@ -1,8 +1,8 @@
 // Base items -> products. Deterministic: the same count gives the same products on every run.
 // ponytail: synthetic names (brand x variant x size x pack x edition), real enough for search and scale tests.
-import { BASE_ITEMS, CATEGORIES, categoryIcon, type BaseItem } from "../catalog/index.js";
-import { parseSize, type SizeUnit } from "../catalog/size.js";
-import { STORE_IDS } from "../locations/locations.service.js";
+import { BASE_ITEMS, CATEGORIES, categoryIcon, type BaseItem } from "../modules/catalog/index.js";
+import { parseSize, type SizeUnit } from "../modules/catalog/size.js";
+import { STORE_IDS } from "../modules/locations/locations.service.js";
 
 const PACKS = [1, 2, 3, 4, 6, 12];
 const EDITIONS = ["", "Value Pack", "Combo Pack", "Family Pack", "Super Saver", "Festive Pack", "Mega Pack", "Saver Pack", "Jumbo Pack", "Special Edition", "New", "Premium", "Classic", "Select", "Daily", "Fresh Pick", "Lite", "Plus", "Pro", "Mini", "Max", "Travel Pack", "Gift Pack", "Kitchen Pack", "Party Pack"];

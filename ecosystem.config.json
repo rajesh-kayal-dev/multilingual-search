@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "qc-search-dev",
+      "name": "indic_search-dev",
       "script": "dist/server.js",
       "args": "dev",
       "exec_mode": "cluster",
@@ -20,7 +20,7 @@
       "max_restarts": 10
     },
     {
-      "name": "qc-search-prod",
+      "name": "indic_search-prod",
       "script": "dist/server.js",
       "exec_mode": "cluster",
       "instances": 4,
@@ -39,7 +39,7 @@
       "log_date_format": "YYYY-MM-DD HH:mm:ss"
     },
     {
-      "name": "qc-search-test-single",
+      "name": "indic_search-test-single",
       "script": "dist/server.js",
       "exec_mode": "fork",
       "instances": 1,
@@ -53,7 +53,7 @@
       "log_date_format": "YYYY-MM-DD HH:mm:ss"
     },
     {
-      "name": "qc-search-test-cluster",
+      "name": "indic_search-test-cluster",
       "script": "dist/server.js",
       "exec_mode": "cluster",
       "instances": 4,

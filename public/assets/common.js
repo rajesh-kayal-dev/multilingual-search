@@ -35,14 +35,14 @@ export const debounce = (fn, ms) => {
 export const store = {
   get: (key, fallback = null) => {
     try {
-      const raw = localStorage.getItem(`jaldi.${key}`);
+      const raw = localStorage.getItem(`indic_search.${key}`);
       return raw === null ? fallback : JSON.parse(raw);
     } catch {
       return fallback;
     }
   },
-  set: (key, value) => localStorage.setItem(`jaldi.${key}`, JSON.stringify(value)),
-  remove: (key) => localStorage.removeItem(`jaldi.${key}`),
+  set: (key, value) => localStorage.setItem(`indic_search.${key}`, JSON.stringify(value)),
+  remove: (key) => localStorage.removeItem(`indic_search.${key}`),
 };
 
 /** Random id kept in the browser: unique visitors without any login */

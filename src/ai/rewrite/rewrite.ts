@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { logger } from "../../bootstrap/logger.js";
 import { redisClient } from "../../bootstrap/redis.js";
-import { hasNativeScript, sha1 } from "../../shared/text.js";
+import { hasNativeScript, sha1 } from "../../shared/utils/text.js";
 import { ai } from "../index.js";
 import { REWRITE_SYSTEM } from "./rewrite.prompts.js";
 

@@ -1,134 +1,333 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Jaldi | The Late admin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/assets/theme.css" />
-    <script src="/assets/theme.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,1,0"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-    />
-    <style>
-      body {
-        font-family: Inter, system-ui, sans-serif;
-      }
-      .material-symbols-rounded {
-        font-size: inherit;
-        line-height: 1;
-        vertical-align: middle;
-      }
-    </style>
-  </head>
-  <body class="bg-slate-50 text-slate-900">
-    <div class="flex min-h-screen">
-      <aside
-        class="w-60 shrink-0 bg-white border-r border-slate-200 p-4 hidden md:flex flex-col gap-4 sticky top-0 h-screen"
-      >
-        <a
-          href="/"
-          aria-label="Jaldi, The Late admin"
-          class="flex items-end gap-2 px-2 select-none"
-        >
-          <span class="inline-flex flex-col leading-none">
-            <span class="text-3xl font-black tracking-tight"
-              ><span class="text-amber-400">Jal</span
-              ><span class="text-green-700">di</span></span
-            >
-            <span
-              aria-hidden="true"
-              class="flex justify-between mt-1 text-[10px] font-extrabold text-slate-500"
-              ><span>T</span><span>H</span><span>E</span><span></span
-              ><span>L</span><span>A</span><span>T</span><span>E</span></span
-            >
-          </span>
-          <span class="text-sm font-semibold text-slate-500">admin</span>
-        </a>
-        <nav id="nav" class="flex flex-col gap-1"></nav>
-        <div class="mt-auto text-xs text-slate-500 px-2 space-y-1">
-          <p id="keyState"></p>
-          <a href="/" class="block text-green-800 hover:underline"
-            >Open the shop ↗</a
-          >
-          <a
-            href="/api-docs"
-            target="_blank"
-            class="block text-green-800 hover:underline"
-            >API docs ↗</a
-          >
-        </div>
-      </aside>
 
-      <div class="flex-1 min-w-0">
-        <header
-          class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 px-6 py-3 flex flex-wrap items-center gap-3"
-        >
-          <a href="/admin" class="md:hidden font-extrabold text-green-700"
-            >Jaldi</a
-          >
-          <h1 id="title" class="text-xl font-extrabold mr-auto"></h1>
-          <div id="filters" class="flex flex-wrap items-center gap-2 text-sm">
-            <label class="sr-only" for="range">Date range</label>
-            <select
-              id="range"
-              class="border border-slate-300 rounded-xl px-3 py-1.5 bg-white"
-            >
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="month">This month</option>
-              <option value="custom">Custom dates</option>
-            </select>
-            <span id="customDates" class="hidden items-center gap-1 flex">
-              <input
-                id="from"
-                type="date"
-                aria-label="From"
-                class="border border-slate-300 rounded-xl px-2 py-1"
-              />
-              <span class="text-slate-400">to</span>
-              <input
-                id="to"
-                type="date"
-                aria-label="To"
-                class="border border-slate-300 rounded-xl px-2 py-1"
-              />
-            </span>
-            <label class="sr-only" for="city">City</label>
-            <select
-              id="city"
-              class="border border-slate-300 rounded-xl px-3 py-1.5 bg-white"
-            >
-              <option value="">All cities</option>
-            </select>
-          </div>
-          <button
-            type="button"
-            data-theme-toggle
-            aria-label="Switch light or dark theme"
-            title="Light / dark"
-            class="grid place-items-center w-9 h-9 rounded-xl border border-slate-300 bg-white text-slate-600 hover:text-slate-900"
-          >
-            <span class="material-symbols-rounded text-lg dark:hidden">dark_mode</span>
-            <span class="material-symbols-rounded text-lg hidden dark:inline">light_mode</span>
-          </button>
-        </header>
-        <main id="view" class="p-6 max-w-[1400px]"></main>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#1d5737" />
+
+  <title>Quickly — Admin Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
+          },
+          colors: {
+            brand: {
+              50: "#f0f7f2",
+              100: "#dceee1",
+              200: "#b9ddc4",
+              300: "#8bc69e",
+              400: "#57a975",
+              500: "#328653",
+              600: "#246b43",
+              700: "#1d5737",
+              800: "#19462e",
+              900: "#143a27"
+            },
+            accent: {
+              400: "#fbbf24",
+              500: "#f59e0b"
+            },
+            paper: "#f7f8f3"
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="/assets/theme.css" />
+  <script src="/assets/theme.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,1,0" />
+
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+
+ <style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .material-symbols-rounded {
+    font-size: inherit;
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  /* ==============================
+     SIDEBAR
+  ============================== */
+
+  .admin-sidebar {
+    background: #19462e;
+    color: #ffffff;
+  }
+
+  .admin-sidebar a {
+    transition: background-color .2s ease, color .2s ease;
+  }
+
+  /* Navigation default state */
+  .admin-sidebar #nav a:not(.active),
+  .admin-sidebar #nav button:not(.active) {
+    color: #e5f0e8;
+    background-color: transparent;
+  }
+
+  /* Navigation icons */
+  .admin-sidebar #nav a:not(.active) *,
+  .admin-sidebar #nav button:not(.active) * {
+    color: inherit;
+  }
+
+  /* Navigation hover */
+  .admin-sidebar #nav a:not(.active):hover,
+  .admin-sidebar #nav button:not(.active):hover {
+    background: rgb(255 255 255 / 12%);
+    color: #ffffff;
+  }
+
+  /* Active navigation item */
+  .admin-sidebar #nav a.active,
+  .admin-sidebar #nav button.active {
+    background: #fbbf24 !important;
+    color: #19462e !important;
+    font-weight: 800 !important;
+    border-left: 4px solid #ffffff;
+    border-radius: 10px;
+  }
+
+  /* Active item icons */
+  .admin-sidebar #nav a.active *,
+  .admin-sidebar #nav button.active * {
+    color: #19462e !important;
+  }
+
+  /* ==============================
+     HEADER
+  ============================== */
+
+  .admin-header {
+    background: rgb(255 255 255 / 92%);
+    backdrop-filter: blur(16px);
+  }
+
+  /* ==============================
+     MAIN DASHBOARD
+  ============================== */
+
+  .admin-main {
+    background: #f7f8f3;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* ==============================
+     INPUTS AND FILTERS
+  ============================== */
+
+  .admin-input {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #292524;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+
+  .admin-input:focus {
+    border-color: #328653;
+    box-shadow: 0 0 0 3px rgb(50 134 83 / 12%);
+  }
+
+  /* ==============================
+     THEME BUTTON
+  ============================== */
+
+  .theme-button {
+    transition: background .2s, transform .2s;
+  }
+
+  .theme-button:hover {
+    background: #f0f7f2;
+    transform: translateY(-1px);
+  }
+
+  /* ==============================
+     RESPONSIVE
+  ============================== */
+
+  @media (max-width: 767px) {
+    .admin-main {
+      min-height: calc(100vh - 65px);
+    }
+  }
+</style>
+
+</head>
+
+<body class="bg-[#f7f8f3] text-stone-900">
+
+  <div class="flex min-h-screen">
+
+    ```
+    <!-- Sidebar -->
+    <aside class="admin-sidebar w-64 shrink-0 p-5 hidden md:flex flex-col gap-7 sticky top-0 h-screen">
+
+      <!-- Quickly Logo -->
+      <a href="/" aria-label="Quickly home"
+        style="display:inline-flex; flex-direction:column; align-items:flex-start; text-decoration:none; line-height:1; flex-shrink:0; user-select:none; padding:8px 6px;">
+
+        <span style="font-size:34px; font-weight:900; letter-spacing:-1.5px; white-space:nowrap;">
+          <span style="color:#fbbf24;">Quick</span><span style="color:#ffffff;">ly</span><span
+            style="color:#fbbf24;">.</span>
+        </span>
+
+        <span
+          style="display:flex; justify-content:space-between; width:100%; margin-top:5px; font-size:10px; font-weight:700; letter-spacing:2px; color:#d1e2d5;">
+          EVERYDAY, MADE EASY
+        </span>
+      </a>
+
+      <!-- Admin Label -->
+      <div class="px-2">
+        <span class="text-[10px] font-bold tracking-[2px] uppercase text-green-200/60">
+          Management
+        </span>
+        <p class="text-sm font-semibold text-white mt-1">
+          Admin Workspace
+        </p>
       </div>
+
+      <!-- Navigation -->
+      <nav id="nav" class="flex flex-col gap-1"></nav>
+
+      <!-- Sidebar Footer -->
+      <div class="mt-auto px-2 space-y-3">
+
+        <div class="border-t border-white/10 pt-4">
+          <p id="keyState" class="text-xs text-green-100/70 mb-3"></p>
+
+          <a href="/"
+            class="flex items-center gap-2 text-sm text-green-100 hover:text-amber-300 transition-colors mb-3">
+            <span class="material-symbols-rounded text-lg">storefront</span>
+            Open the shop
+            <span class="material-symbols-rounded text-sm">north_east</span>
+          </a>
+
+          <a href="/api-docs" target="_blank"
+            class="flex items-center gap-2 text-sm text-green-100 hover:text-amber-300 transition-colors">
+            <span class="material-symbols-rounded text-lg">code</span>
+            API documentation
+            <span class="material-symbols-rounded text-sm">north_east</span>
+          </a>
+        </div>
+
+        <div class="rounded-xl bg-white/5 border border-white/10 p-3">
+          <p class="text-[10px] uppercase tracking-wider text-green-200/60 font-semibold">
+            Powered by
+          </p>
+          <p class="text-sm font-bold text-white mt-1">
+            Quickly Platform
+          </p>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 min-w-0">
+
+      <!-- Header -->
+      <header
+        class="admin-header sticky top-0 z-20 border-b border-stone-200/80 px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
+
+        <!-- Mobile Logo -->
+        <a href="/admin" class="md:hidden font-black text-xl tracking-tight shrink-0">
+          <span class="text-amber-500">Quick</span><span class="text-brand-700">ly.</span>
+        </a>
+
+        <!-- Dynamic Page Title -->
+        <h1 id="title" class="text-lg sm:text-xl font-extrabold tracking-tight mr-auto text-stone-900">
+        </h1>
+
+        <!-- Filters -->
+        <div id="filters" class="flex flex-wrap items-center gap-2 text-sm">
+
+          <label class="sr-only" for="range">Date range</label>
+
+          <select id="range" class="admin-input px-3 py-2 text-sm font-medium">
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="month">This month</option>
+            <option value="custom">Custom dates</option>
+          </select>
+
+          <span id="customDates" class="hidden items-center gap-1">
+            <input id="from" type="date" aria-label="From" class="admin-input px-2 py-2 text-sm" />
+
+            <span class="text-stone-400">to</span>
+
+            <input id="to" type="date" aria-label="To" class="admin-input px-2 py-2 text-sm" />
+          </span>
+
+          <label class="sr-only" for="city">City</label>
+
+          <select id="city" class="admin-input px-3 py-2 text-sm font-medium">
+            <option value="">All cities</option>
+          </select>
+
+        </div>
+
+        <!-- Theme Toggle -->
+        <button type="button" data-theme-toggle aria-label="Switch light or dark theme" title="Light / dark"
+          class="theme-button grid place-items-center w-10 h-10 rounded-xl border border-stone-200 bg-white text-stone-600">
+
+          <span class="material-symbols-rounded text-xl dark:hidden">
+            dark_mode
+          </span>
+
+          <span class="material-symbols-rounded text-xl hidden dark:inline">
+            light_mode
+          </span>
+
+        </button>
+
+      </header>
+
+      <!-- Dashboard Content -->
+      <main id="view" class="admin-main p-4 sm:p-6 lg:p-8 max-w-[1500px] mx-auto">
+      </main>
+
     </div>
-    <script type="module" src="/assets/admin/main.js"></script>
-  </body>
+    ```
+
+  </div>
+
+  <!-- Existing Admin JavaScript -->
+
+  <script type="module" src="/assets/admin/main.js"></script>
+
+</body>
+
 </html>

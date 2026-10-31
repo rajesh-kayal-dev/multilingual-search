@@ -3,10 +3,10 @@ import { ai } from "../ai/index.js";
 import { GROUPS, TOPICS, startConsumer } from "../bootstrap/kafka.js";
 import { logger } from "../bootstrap/logger.js";
 import { typesense } from "../bootstrap/typesense.js";
-import { ProductModel } from "../features/products/products.model.js";
-import type { IndexMessage } from "../features/products/products.types.js";
-import { vectorsByKeys } from "../search/embeddings.js";
-import { ensureProductsCollection, importDocs, isNotFound, toProductDoc } from "../search/typesense.schema.js";
+import { ProductModel } from "../modules/catalog/products.model.js";
+import type { IndexMessage } from "../modules/catalog/products.types.js";
+import { vectorsByKeys } from "../modules/search/embeddings.js";
+import { ensureProductsCollection, importDocs, isNotFound, toProductDoc } from "../modules/search/typesense.schema.js";
 
 let warnedModel = "";
 

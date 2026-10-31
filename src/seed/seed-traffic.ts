@@ -5,20 +5,20 @@
  * Fake shoppers in 8 cities, each city in its own languages (Chennai Tamil, Kolkata Bengali...), more
  * searches in the morning and evening, some from pincodes with no dark store. Events go through Kafka
  * (search.events) like real traffic: keep `pnpm workers` running to see them in the dashboard.
- * Reads product ids from Mongo (only a "jaldi..." database). Writes nothing to Mongo itself.
+ * Reads product ids from Mongo (only a "indic_search..." database). Writes nothing to Mongo itself.
  */
 import "../bootstrap/mongo-host-dns.js";
 import mongoose from "mongoose";
-import type { AnalyticsEvent } from "../analytics/analytics.types.js";
+import type { AnalyticsEvent } from "../modules/analytics/analytics.types.js";
 import { tagRules } from "../ai/tagging/kb.js";
-import { BASE_ITEMS, CATEGORIES } from "../catalog/index.js";
+import { BASE_ITEMS, CATEGORIES } from "../modules/catalog/index.js";
 import { connectDatabase, disconnectDatabase } from "../bootstrap/database.js";
 import { TOPICS, connectKafka, disconnectKafka, ensureTopics, sendEvents } from "../bootstrap/kafka.js";
-import { ProductModel } from "../features/products/products.model.js";
-import { CITIES, resolveLocation, type City, type Pincode } from "../locations/locations.service.js";
-import { assertSafeDatabase, confirm, intFlag } from "../shared/cli.js";
-import { detectScript, normalizeQuery, type Lang } from "../shared/text.js";
-import { EVAL_INTENTS } from "../search/eval/eval-queries.js";
+import { ProductModel } from "../modules/catalog/products.model.js";
+import { CITIES, resolveLocation, type City, type Pincode } from "../modules/locations/locations.service.js";
+import { assertSafeDatabase, confirm, intFlag } from "../shared/utils/cli.js";
+import { detectScript, normalizeQuery, type Lang } from "../shared/utils/text.js";
+import { EVAL_INTENTS } from "../modules/search/eval/eval-queries.js";
 
 const DAYS = intFlag("days", 30);
 const SEARCHES = intFlag("searches", 100_000);

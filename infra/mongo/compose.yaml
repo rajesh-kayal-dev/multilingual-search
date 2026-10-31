@@ -1,16 +1,16 @@
-name: fk
+name: indic_search-mongo
 
 networks:
   net:
-    name: fk-net
+    name: indic_search-mongo-net
 
 volumes:
   mongo-primary-data:
-    name: fk-mongo-primary-data
+    name: indic_search-mongo-primary-data
   mongo-secondary-1-data:
-    name: fk-mongo-secondary-1-data
+    name: indic_search-mongo-secondary-1-data
   mongo-secondary-2-data:
-    name: fk-mongo-secondary-2-data
+    name: indic_search-mongo-secondary-2-data
 
 x-mongo: &mongo-common
   image: mongo:8
@@ -25,7 +25,7 @@ x-mongo: &mongo-common
   command:
     - mongod
     - --replSet
-    - fk-rs
+    - indic_search-rs
     - --bind_ip_all
     - --wiredTigerCacheSizeGB
     - "0.25"
@@ -46,8 +46,8 @@ x-mongo: &mongo-common
 services:
   mongo-primary:
     <<: *mongo-common
-    container_name: fk-mongo-primary
-    hostname: fk-mongo-primary
+    container_name: indic_search-mongo-primary
+    hostname: indic_search-mongo-primary
     ports:
       - "27017:27017"
     volumes:
@@ -55,8 +55,8 @@ services:
 
   mongo-secondary-1:
     <<: *mongo-common
-    container_name: fk-mongo-secondary-1
-    hostname: fk-mongo-secondary-1
+    container_name: indic_search-mongo-secondary-1
+    hostname: indic_search-mongo-secondary-1
     ports:
       - "27018:27017"
     volumes:
@@ -64,8 +64,8 @@ services:
 
   mongo-secondary-2:
     <<: *mongo-common
-    container_name: fk-mongo-secondary-2
-    hostname: fk-mongo-secondary-2
+    container_name: indic_search-mongo-secondary-2
+    hostname: indic_search-mongo-secondary-2
     ports:
       - "27019:27017"
     volumes:
@@ -73,7 +73,7 @@ services:
 
   mongo-init:
     image: mongo:8
-    container_name: fk-mongo-init
+    container_name: indic_search-mongo-init
     restart: "no"
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -91,6 +91,6 @@ services:
     command:
       - mongosh
       - --host
-      - fk-mongo-primary:27017
+      - indic_search-mongo-primary:27017
       - --file
       - /rs-init.js
