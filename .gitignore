@@ -1,0 +1,9 @@
+node_modules/
+dist/
+logs/
+.env
+*.log
+
+# Local environment files
+.env.test
+.env.*.local
